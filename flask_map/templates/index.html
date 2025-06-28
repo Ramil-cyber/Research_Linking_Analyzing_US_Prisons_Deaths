@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Plotly with Flask</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Plotly Chart Rendered in Flask</h1>
+    <div id="plotly-chart"></div>
+    <script>
+        var plotly_data = {{ graphJSON|safe }};
+        Plotly.newPlot('plotly-chart', plotly_data.data, plotly_data.layout);
+    </script>
+</body>
+</html>

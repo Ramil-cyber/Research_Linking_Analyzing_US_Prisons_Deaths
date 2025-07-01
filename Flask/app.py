@@ -14,57 +14,51 @@ df = pd.read_csv(
     low_memory=False,
 )
 
-agg = (
-    df.groupby(["state_name", "state_abbr", "death_year"], as_index=False)
-      .agg({
-          "death_count": "sum",
-          "total_pop_15to64": "first",
-          "female_pop_15to64": "first",
-          "male_pop_15to64": "first",
-          "aapi_pct": "first",
-          "black_pct": "first",
-          "latinx_pct": "first",
-          "native_pct": "first",
-          "white_pct": "first",
-          "total_prison_pop": "first",
-          "female_prison_pop": "first",
-          "male_prison_pop": "first",
-          "prison_death_rate": "first",
-          "total_prisoners_rate": "first"
-      })
+agg = df.groupby(["state_name", "state_abbr", "death_year"], as_index=False).agg(
+    {
+        "death_count": "sum",
+        "total_pop_15to64": "first",
+        "female_pop_15to64": "first",
+        "male_pop_15to64": "first",
+        "aapi_pct": "first",
+        "black_pct": "first",
+        "latinx_pct": "first",
+        "native_pct": "first",
+        "white_pct": "first",
+        "total_prison_pop": "first",
+        "female_prison_pop": "first",
+        "male_prison_pop": "first",
+        "prison_death_rate": "first",
+        "total_prisoners_rate": "first",
+    }
 )
 agg["female_pct"] = (agg.female_pop_15to64 / agg.total_pop_15to64 * 100).fillna(0)
-agg["male_pct"]   = (agg.male_pop_15to64 / agg.total_pop_15to64 * 100).fillna(0)
+agg["male_pct"] = (agg.male_pop_15to64 / agg.total_pop_15to64 * 100).fillna(0)
 
 # pad missing state×year combos
 all_states = sorted(agg.state_abbr.unique())
-all_years  = sorted(agg.death_year.unique())
+all_years = sorted(agg.death_year.unique())
 full_index = pd.DataFrame(
-    itertools.product(all_states, all_years),
-    columns=["state_abbr", "death_year"]
+    itertools.product(all_states, all_years), columns=["state_abbr", "death_year"]
 )
-agg = (
-    full_index
-    .merge(agg, on=["state_abbr", "death_year"], how="left")
-    .assign(
-        state_name=lambda d: d.state_abbr.map(
-            agg.drop_duplicates("state_abbr").set_index("state_abbr")["state_name"]
-        ),
-        death_count=lambda d: d.death_count.fillna(0),
-        total_pop_15to64=lambda d: d.total_pop_15to64.fillna(0),
-        female_pct=lambda d: d.female_pct.fillna(0),
-        male_pct=lambda d: d.male_pct.fillna(0),
-        aapi_pct=lambda d: d.aapi_pct.fillna(0),
-        black_pct=lambda d: d.black_pct.fillna(0),
-        latinx_pct=lambda d: d.latinx_pct.fillna(0),
-        native_pct=lambda d: d.native_pct.fillna(0),
-        white_pct=lambda d: d.white_pct.fillna(0),
-        total_prison_pop=lambda d: d.total_prison_pop.fillna(0),
-        female_prison_pop=lambda d: d.female_prison_pop.fillna(0),
-        male_prison_pop=lambda d: d.male_prison_pop.fillna(0),
-        prison_death_rate=lambda d: d.prison_death_rate.fillna(0),
-        total_prisoners_rate=lambda d: d.total_prisoners_rate.fillna(0),
-    )
+agg = full_index.merge(agg, on=["state_abbr", "death_year"], how="left").assign(
+    state_name=lambda d: d.state_abbr.map(
+        agg.drop_duplicates("state_abbr").set_index("state_abbr")["state_name"]
+    ),
+    death_count=lambda d: d.death_count.fillna(0),
+    total_pop_15to64=lambda d: d.total_pop_15to64.fillna(0),
+    female_pct=lambda d: d.female_pct.fillna(0),
+    male_pct=lambda d: d.male_pct.fillna(0),
+    aapi_pct=lambda d: d.aapi_pct.fillna(0),
+    black_pct=lambda d: d.black_pct.fillna(0),
+    latinx_pct=lambda d: d.latinx_pct.fillna(0),
+    native_pct=lambda d: d.native_pct.fillna(0),
+    white_pct=lambda d: d.white_pct.fillna(0),
+    total_prison_pop=lambda d: d.total_prison_pop.fillna(0),
+    female_prison_pop=lambda d: d.female_prison_pop.fillna(0),
+    male_prison_pop=lambda d: d.male_prison_pop.fillna(0),
+    prison_death_rate=lambda d: d.prison_death_rate.fillna(0),
+    total_prisoners_rate=lambda d: d.total_prisoners_rate.fillna(0),
 )
 
 # centroids for labels
@@ -119,7 +113,7 @@ state_centroids = {
     "WA": {"lat": 47.4009, "lon": -121.4905},
     "WV": {"lat": 38.4912, "lon": -80.9545},
     "WI": {"lat": 44.2685, "lon": -89.6165},
-    "WY": {"lat": 42.7560, "lon": -107.3025}
+    "WY": {"lat": 42.7560, "lon": -107.3025},
 }
 
 # build figure
@@ -129,23 +123,39 @@ zmax = agg.death_count.max()
 for i, yr in enumerate(all_years):
     dff = agg[agg.death_year == yr]
     # choropleth
-    fig.add_trace(go.Choropleth(
-        locations=dff.state_abbr,
-        locationmode="USA-states",
-        z=dff.death_count,
-        zmin=0, zmax=zmax,
-        colorscale="Greens",
-        marker_line_color="black", marker_line_width=0.5,
-        colorbar=dict(title="Deaths", x=1),
-        customdata=dff[[
-            "state_name","total_pop_15to64","female_pct","male_pct",
-            "aapi_pct","black_pct","latinx_pct","native_pct","white_pct",
-            "total_prison_pop","female_prison_pop","male_prison_pop",
-            "death_count","prison_death_rate","total_prisoners_rate"
-        ]].values,
-        hovertemplate=(
-             "<b>%{customdata[0]}</b><br>"
-                "Total State Population at 15-64 years old: %{customdata[1]:,}<br>"
+    fig.add_trace(
+        go.Choropleth(
+            locations=dff.state_abbr,
+            locationmode="USA-states",
+            z=dff.death_count,
+            zmin=0,
+            zmax=zmax,
+            colorscale="Greens",
+            marker_line_color="black",
+            marker_line_width=0.5,
+            colorbar=dict(title="Deaths", x=1),
+            customdata=dff[
+                [
+                    "state_name",
+                    "total_pop_15to64",
+                    "female_pct",
+                    "male_pct",
+                    "aapi_pct",
+                    "black_pct",
+                    "latinx_pct",
+                    "native_pct",
+                    "white_pct",
+                    "total_prison_pop",
+                    "female_prison_pop",
+                    "male_prison_pop",
+                    "death_count",
+                    "prison_death_rate",
+                    "total_prisoners_rate",
+                ]
+            ].values,
+            hovertemplate=(
+                "<b>%{customdata[0]}</b><br>" 
+                "State Population Aged 15–64: %{customdata[1]:,}<br>"
                 "Female Population: %{customdata[2]:.1f}%<br>"
                 "Male Population: %{customdata[3]:.1f}%<br>"
                 "Asian American/Pacific Islander: %{customdata[4]:.1f}%<br>"
@@ -153,16 +163,18 @@ for i, yr in enumerate(all_years):
                 "Hispanic/Latino: %{customdata[6]:.1f}%<br>"
                 "Native: %{customdata[7]:.1f}%<br>"
                 "White: %{customdata[8]:.1f}%<extra></extra>"
-                "Total Prisoners: %{customdata[9]:,}<br>"
-                "Female Prisoners: %{customdata[10]:,}<br>"
-                "Male Prisoners: %{customdata[11]:,}<br>"
-                "Prisoner Deaths: %{customdata[12]:,}<br>"
-                "Prisoner Death Rate: %{customdata[13]:,}<br>"
-                "Total Prisoners Rate: %{customdata[14]:,}<br>"
-                "<extra></extra>" 
-        ),
-        visible=(i == 0)
-    ))
+                "<b>%{customdata[0]}</b><br>" 
+                "Total Prison Population: %{customdata[9]:,}<br>"
+                "Female Incarcerated Population: %{customdata[10]:,}<br>"
+                "Male Incarcerated Population: %{customdata[11]:,}<br>"
+                "Number of Prisoner Deaths: %{customdata[12]:,}<br>"
+                "Rate of Inmate Deaths per 10,000: %{customdata[13]:,}<br>"
+                "Prisoner Rate per 10,000 People: %{customdata[14]:,}<br>"
+                "<extra></extra>"
+            ),
+            visible=(i == 0),
+        )
+    )
     # state labels
     lons = [state_centroids[s]["lon"] for s in dff["state_abbr"]]
     lats = [state_centroids[s]["lat"] for s in dff["state_abbr"]]
@@ -174,7 +186,7 @@ for i, yr in enumerate(all_years):
             mode="text",
             showlegend=False,
             hoverinfo="none",
-            textfont=dict(size=9, color="black"),
+            textfont=dict(size=12, color="black"),
             visible=(i == 0),
         )
     )

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>US Prisoner Deaths Map</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+  <h1>US Prisoner Deaths by State</h1>
+  <div id="map-div" style="width:100%; height:80vh;"></div>
+  <script>
+    // this gets your figure JSON from Flask
+    var fig = {{ graphJSON | safe }};
+    Plotly.newPlot('map-div', fig.data, fig.layout, {responsive: true});
+  </script>
+</body>
+</html>

@@ -7,7 +7,7 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
-# ——— PREP DATA & FIGURE ———
+# PREP DATA & FIGURE
 
 df = pd.read_csv(
     "https://raw.githubusercontent.com/Ramil-cyber/Research_Linking_Analyzing_Deaths_US_Prisons/refs/heads/main/Data/Last_merged_full_df.csv",
@@ -122,7 +122,7 @@ zmax = agg.death_count.max()
 
 for i, yr in enumerate(all_years):
     dff = agg[agg.death_year == yr]
-    # choropleth
+   
     fig.add_trace(
         go.Choropleth(
             locations=dff.state_abbr,

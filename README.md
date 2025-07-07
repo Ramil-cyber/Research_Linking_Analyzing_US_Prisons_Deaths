@@ -1,4 +1,4 @@
-![Project Cover](project_cover.png)
+![Project Cover](Images/Image Jul 7, 2025, 10_52_09 AM.png)
 
 # Linking and Analyzing Data on Deaths in U.S. Prisons
 
